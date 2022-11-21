@@ -156,6 +156,10 @@ cython_debug/
 *.webm
 *.mp4
 *.mov
+*.npy
 *.png
 *.jpg
 *.jpeg
+
+# model files
+*.onnx

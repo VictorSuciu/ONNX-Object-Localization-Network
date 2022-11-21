@@ -26,8 +26,49 @@ def download_yt(video_fp, out_root, overwrite):
     
     return [os.path.join(video_dir, f) for f in os.listdir(video_dir) if not os.path.isdir(f)]
 
+def crop_and_resize(img, new_width, new_height):
+    """
+    img: a numpy array - the image to resize
+    new_width: the desired width
+    new_height: the desired height
+    """
+    print('here')
+    old_width = img.shape[1]
+    old_height = img.shape[0]
+    
+    # first, determine where to crop
 
-def extract_frames(video_fp, all_frames_root, overwrite, max_frames=8, sec_between_frames=0.5, sec_start_time=0):
+    if new_width > old_width or new_height > old_height:
+        ratio = max(new_width / old_width, new_height / old_height)
+        crop_width = new_width / ratio
+        crop_height = new_height / ratio
+    else:
+        ratio = 1
+        crop_width = new_width
+        crop_height = new_height
+
+
+    x_corner = int((old_width - crop_width) / 2)
+    y_corner = int((old_height - crop_height) / 2)
+
+    print('old size:', img.shape)
+    cropped_img = img[
+        y_corner : y_corner + int(crop_height),
+        x_corner: x_corner + int(crop_width),
+        : # rgb dimension
+    ]
+    print('cropped size:', cropped_img.shape)
+    
+    # final_img = np.zeros((new_height, new_width, 3), dtype=np.int16)
+    final_img = cv2.resize(cropped_img, (int(crop_width * ratio), int(crop_height * ratio)))
+    print('final size:', final_img.shape)
+    print()
+
+    return final_img
+
+
+
+def extract_frames(video_fp, all_frames_root, overwrite, frame_width, frame_height, max_frames=8, sec_between_frames=0.5, sec_start_time=0):
     """
     video_fp: file path to video
     max_frames: total number of frames to extract
@@ -59,9 +100,12 @@ def extract_frames(video_fp, all_frames_root, overwrite, max_frames=8, sec_betwe
     while frame_was_read and num_saved_frames < max_frames:
         cur_time = count / fps
         if cur_time >= sec_start_time and cur_time >= next_timestamp:
+            resized_frame = crop_and_resize(frame, frame_width, frame_height)
+            
             file_name = f'{video_id}_frame_{count}'
-            np.save(os.path.join(frame_dir, f'{file_name}.npy'), frame)
-            cv2.imwrite(os.path.join(frame_dir, f'{file_name}.png'), frame)
+            np.save(os.path.join(frame_dir, f'{file_name}.npy'), resized_frame)
+            cv2.imwrite(os.path.join(frame_dir, f'{file_name}.png'), resized_frame)
+            
             num_saved_frames += 1
             next_timestamp += sec_between_frames
             frame_idx_saved.append(count)
@@ -78,7 +122,16 @@ def extract_frames(video_fp, all_frames_root, overwrite, max_frames=8, sec_betwe
     }
 
 
-def process_batch(file_list, out_root, overwrite, max_frames=8, sec_between_frames=0.5, sec_start_time=0):
+
+def process_batch(
+    file_list,
+    out_root,
+    overwrite,
+    frame_width=1280,
+    frame_height=720,
+    max_frames=8,
+    sec_between_frames=0.5,
+    sec_start_time=0):
     """
     file_list: list of video vile paths
     runs above functions to save frames to disk and
@@ -88,7 +141,16 @@ def process_batch(file_list, out_root, overwrite, max_frames=8, sec_between_fram
     make_dir(frames_root, overwrite)
 
     for video_fp in file_list:
-        info_dict = extract_frames(video_fp, frames_root, overwrite, max_frames, sec_between_frames, sec_start_time)
+        info_dict = extract_frames(
+            video_fp,
+            frames_root,
+            overwrite,
+            frame_width,
+            frame_height,
+            max_frames,
+            sec_between_frames,
+            sec_start_time
+        )
         
 
 
