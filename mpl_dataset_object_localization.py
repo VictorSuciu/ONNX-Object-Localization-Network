@@ -29,14 +29,15 @@ def localize_objects(frame_root):
     ]
 
     # Initialize object localizer
+    print('initializing model')
     model_path = "models/oln_720x1280.onnx"
     remove_initializer_from_input(model_path, model_path) # Remove unused nodes
     localizer = ObjectLocalizationNet(model_path, threshold=0.7)
 
     
-
+    print('begin localization')
     for i, npy_dir in enumerate(npy_frame_dirs):
-        print(f'{i + 1} / {len(npy_dir)}')
+        print(f'{i + 1} / {len(npy_frame_dirs)}')
         object_dir = npy_dir[:-4] + '+objects'
         try:
             shutil.rmtree(object_dir)
