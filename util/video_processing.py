@@ -80,8 +80,13 @@ def extract_frames(video_fp, all_frames_root, overwrite, frame_width, frame_heig
     """
     # https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html
     video_id = os.path.basename(video_fp).split('.')[0]
+
     frame_dir = os.path.join(all_frames_root, video_id)
+    npy_frame_dir = os.path.join(all_frames_root, video_id + '+npy')
+
     make_dir(frame_dir, overwrite)
+    make_dir(npy_frame_dir, overwrite)
+    
 
     vid_cap = cv2.VideoCapture(video_fp)
     fps = vid_cap.get(cv2.CAP_PROP_FPS)
@@ -102,8 +107,8 @@ def extract_frames(video_fp, all_frames_root, overwrite, frame_width, frame_heig
         if cur_time >= sec_start_time and cur_time >= next_timestamp:
             resized_frame = crop_and_resize(frame, frame_width, frame_height)
             
-            file_name = f'{video_id}_frame_{count}'
-            np.save(os.path.join(frame_dir, f'{file_name}.npy'), resized_frame)
+            file_name = f'{video_id}+frame+{count}'
+            np.save(os.path.join(npy_frame_dir, f'{file_name}.npy'), resized_frame)
             cv2.imwrite(os.path.join(frame_dir, f'{file_name}.png'), resized_frame)
             
             num_saved_frames += 1
