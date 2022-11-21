@@ -1,0 +1,24 @@
+python util/video_processing.py \
+video_urls/youtube_8m.txt \
+processed_videos_youtube_8m --overwrite
+
+python mpl_dataset_object_localization.py \
+processed_videos_youtube_8m/sampled_frames
+
+
+
+python util/video_processing.py \
+video_urls/hd_vila_100m.txt \
+processed_videos_hd_vila_100m --overwrite
+
+python mpl_dataset_object_localization.py \
+processed_videos_hd_vila_100m/sampled_frames
+
+
+
+python util/video_processing.py \
+sample_videos.txt \
+sample_videos --overwrite
+
+python mpl_dataset_object_localization.py \
+sample_videos/sampled_frames

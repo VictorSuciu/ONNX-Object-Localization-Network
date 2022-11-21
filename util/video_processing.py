@@ -32,7 +32,6 @@ def crop_and_resize(img, new_width, new_height):
     new_width: the desired width
     new_height: the desired height
     """
-    print('here')
     old_width = img.shape[1]
     old_height = img.shape[0]
     
@@ -51,18 +50,12 @@ def crop_and_resize(img, new_width, new_height):
     x_corner = int((old_width - crop_width) / 2)
     y_corner = int((old_height - crop_height) / 2)
 
-    print('old size:', img.shape)
     cropped_img = img[
         y_corner : y_corner + int(crop_height),
         x_corner: x_corner + int(crop_width),
         : # rgb dimension
-    ]
-    print('cropped size:', cropped_img.shape)
-    
-    # final_img = np.zeros((new_height, new_width, 3), dtype=np.int16)
+    ]    
     final_img = cv2.resize(cropped_img, (int(crop_width * ratio), int(crop_height * ratio)))
-    print('final size:', final_img.shape)
-    print()
 
     return final_img
 
@@ -97,10 +90,10 @@ def extract_frames(video_fp, all_frames_root, overwrite, frame_width, frame_heig
     count = 1
     # last_saved_frame = 0
     num_saved_frames = 0
-    next_timestamp = sec_between_frames
+    next_timestamp = sec_start_time + sec_between_frames
     frame_idx_saved = []
 
-    print(f'fps={fps}, num_frames={num_frames}')
+    # print(f'fps={fps}, num_frames={num_frames}')
 
     while frame_was_read and num_saved_frames < max_frames:
         cur_time = count / fps
@@ -145,7 +138,8 @@ def process_batch(
     frames_root = os.path.join(out_root, 'sampled_frames')
     make_dir(frames_root, overwrite)
 
-    for video_fp in file_list:
+    for i, video_fp in enumerate(file_list):
+        print(f'getting frames from video {i+1} / {len(file_list)}')
         info_dict = extract_frames(
             video_fp,
             frames_root,
@@ -180,8 +174,19 @@ def main():
 
     make_dir(args.out_root, args.overwrite)
 
-    vid_files = download_yt(args.vid_location_file, args.out_root, args.overwrite)
-    process_batch(vid_files, args.out_root, True)
+    vid_files = download_yt(
+        args.vid_location_file,
+        args.out_root,
+        args.overwrite
+    )
+    process_batch(
+        vid_files,
+        args.out_root,
+        True,
+        max_frames=16,
+        sec_between_frames=0.5,
+        sec_start_time=60
+    )
 
 if __name__ == '__main__':
     main()
